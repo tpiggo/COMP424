@@ -166,27 +166,6 @@ class TSPInstance(BaseInstance):
         computed.append((i, i2))
         return self._swap_city(i, i2), computed
 
-    def solve_hill_climbing_for_7(self):
-        self.find_random_path_length()
-        current_tour_length = self.random_path_length
-        while True:
-            all_neighbours = self._compute_all_neighbours()
-            if len(all_neighbours) > 0:
-                path = all_neighbours[0][0]
-                min_distance = all_neighbours[0][1]
-                for neighbour in all_neighbours:
-                    if neighbour[1] < min_distance:
-                        min_distance = neighbour[1]
-                        path = neighbour[0]
-                if min_distance < current_tour_length:
-                    current_tour_length = min_distance
-                    self.random_path = path
-                else:
-                    break
-            else:
-                print("Failed to find all neighbours!")
-        self.hill_climbed_path_length = current_tour_length
-
     def solve_hill_climbing(self):
         self.find_random_path_length()
         current_tour_length = self.random_path_length
