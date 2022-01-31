@@ -99,19 +99,22 @@ class TSPInstance(BaseInstance):
         return len(self._cities)
 
     def _calculate_tour(self, cities_order):
-        if not self._start_city == cities_order[0]:
+        if self._start_city == cities_order[0]:
+            slice_index = 0
+        elif self._start_city == cities_order[-1]:
+            slice_index = len(cities_order) - 1
+        else:
             slice_index = 0
             for index, city in enumerate(cities_order):
                 if city == self._start_city:
                     slice_index = index
                     break
-            front_order_slice = [cities_order[index] for index in range(slice_index, len(cities_order))]
-            rear_order_slide = [cities_order[index] for index in range(0, slice_index)]
-            cities_order = front_order_slice + rear_order_slide
-        number_cities = len(cities_order)
+        num_cities = len(cities_order)
+        max_num = slice_index + num_cities
         tour_distance = 0
-        for index, city in enumerate(cities_order):
-            next_city = cities_order[(index + 1) % number_cities]
+        for index in range(slice_index, max_num):
+            city = cities_order[index % num_cities]
+            next_city = cities_order[(index + 1) % num_cities]
             tour_distance = tour_distance + city.distance_to_next(next_city)
         return tour_distance
 
@@ -134,6 +137,7 @@ class TSPInstance(BaseInstance):
         self.random_path_length = self._calculate_tour(self.random_path)
 
     def solve_brute_with_random(self):
+        self.brute_force_solve()
         self.find_random_path_length()
 
     def _swap_city(self, swap_index1, swap_index2):
@@ -247,13 +251,14 @@ class AggregateTSPInstance(BaseInstance):
             tsp_inst.brute_force_solve()
         self._find_data_points()
 
-    def print_stats_rand(self):
+    def print_stats_rand(self, check_optimal=True):
         print('Random findings:')
         print(f'Min: {self.r_min}')
         print(f'Max: {self.r_max}')
         print(f'Mean: {self.r_mean}')
         print(f'Standard deviation: {self.r_std}')
-        print(f'Number of optimal: {self.optimal_rand}')
+        if check_optimal:
+            print(f'Number of optimal: {self.optimal_rand}')
 
     def print_stats_hill_climbing(self, check_optimal=True):
         print('Hill Climbing findings:')
@@ -276,12 +281,13 @@ class AggregateTSPInstance(BaseInstance):
             tsp_inst.find_random_path_length()
         self._find_data_points_rand()
 
-    def solve_hill_climbing(self):
+    def solve_hill_climbing(self, print_done=False):
         print(f"Starting hill climbing for {self._tsp_instances[0].get_num_cities()} instances!")
         start = datetime.datetime.now()
         for index, tsp_inst in enumerate(self._tsp_instances):
             tsp_inst.solve_hill_climbing()
-            print('Done hill climbing for iteration {}'.format(index))
+            if print_done:
+                print('Done hill climbing for iteration {}'.format(index))
         self._find_data_points_hc()
         print("Done hill climbing")
         print(f"Took {datetime.datetime.now() - start}")
@@ -317,8 +323,8 @@ def run_random_vs_brute(n=7):
 
 def run_random(n=100):
     agg_tsp_instance = AggregateTSPInstance.create_aggregate_tsp_instance(num_cities=n)
-    agg_tsp_instance.random_paths()
-    agg_tsp_instance.print_stats_rand()
+    agg_tsp_instance.find_random_paths()
+    agg_tsp_instance.print_stats_rand(False)
 
 
 def run_hill_climbing_vs_brute(n=7):
@@ -330,16 +336,16 @@ def run_hill_climbing_vs_brute(n=7):
 
 def run_hill_climbing(n=100):
     agg_tsp_instance = AggregateTSPInstance.create_aggregate_tsp_instance(num_cities=n)
-    agg_tsp_instance.solve_hill_climbing()
+    agg_tsp_instance.solve_hill_climbing(True)
     agg_tsp_instance.print_stats_hill_climbing(False)
 
 
 def main():
     # run_brute_force()
-    # run_random_path()
+    # run_random_vs_brute()
+    # run_hill_climbing_vs_brute()
     run_random()
-    # run_hill_climbing()
-    # run_hill_climbing()
+    run_hill_climbing()
 
 
 if __name__ == '__main__':
